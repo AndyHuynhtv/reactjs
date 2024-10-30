@@ -1,7 +1,9 @@
 import { Box, Container, Pagination, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { postApi } from "../../../api/postApi";
 import { MediaCard } from "../../../components/Common/PostCard";
+
 export function HomePage() {
   const [params, setParams] = useState({
     _page: 1,
@@ -14,26 +16,34 @@ export function HomePage() {
     _totalRows: 0,
   });
 
-  const [postList, setPostList] = useState();
+  const [postList, setPostList] = useState([]);
+
+  const navigate = useNavigate();
   useEffect(() => {
     (() => {
       postApi
         .getAll(params)
         .then((res) => {
-          setPostList(res.data);
-          const pagination = {
-            ...res.pagination,
-            _totalPage: Math.ceil(
-              res.pagination._totalRows / res.pagination._limit
-            ),
-          };
-          setPagination(pagination);
+          if (res) {
+            setPostList(res.data);
+            if (res.pagination) {
+              const pagination = {
+                ...res.pagination,
+                _totalPage: Math.ceil(
+                  res.pagination._totalRows / res.pagination._limit
+                ),
+              };
+              setPagination(pagination);
+            }
+          }
         })
+
         .catch((error) => {
           console.log("error: ", error);
         });
     })();
   }, [params]);
+  console.log("PostList: ", postList);
   return (
     <Box>
       <Container>
@@ -49,7 +59,10 @@ export function HomePage() {
                 key={index}
               >
                 {/* Box cang chinh padding */}
-                <Box sx={{ p: 1.5 }}>
+                <Box
+                  sx={{ p: 1.5 }}
+                  onClick={() => navigate(`/home/${item.id}`)}
+                >
                   <MediaCard
                     title={item.title}
                     author={item.author}
